@@ -422,7 +422,7 @@ abstract class AnnotationMongoDBAdaptor extends MongoDBAdaptor {
 
         List<VariableSummary> variableSummaryList = new ArrayList<>();
 
-        List<FeatureCount> featureCountList = null;
+        List<FeatureCount> featureCountList = new ArrayList<>();
         VariableSummary v = new VariableSummary();
 
         for (Document document : result) {
@@ -432,7 +432,6 @@ abstract class AnnotationMongoDBAdaptor extends MongoDBAdaptor {
             int count = document.getInteger("count");
 
             if (!name.equals(v.getName())) {
-                featureCountList = new ArrayList<>();
                 v = new VariableSummary(name, featureCountList);
                 variableSummaryList.add(v);
             }

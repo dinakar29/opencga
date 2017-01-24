@@ -149,11 +149,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        FileAclEntry fileAcl = null;
+        FileAclEntry fileAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 fileAcl = transformStudyAclToFileAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             fileAcl = resolveFilePermissions(studyId, fileId, userId);
@@ -247,11 +249,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        SampleAclEntry sampleAcl = null;
+        SampleAclEntry sampleAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 sampleAcl = transformStudyAclToSampleAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             sampleAcl = resolveSamplePermissions(studyId, sampleId, userId);
@@ -357,11 +361,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        IndividualAclEntry individualAcl = null;
+        IndividualAclEntry individualAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 individualAcl = transformStudyAclToIndividualAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             individualAcl = resolveIndividualPermissions(studyId, individualId, userId);
@@ -455,11 +461,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        JobAclEntry jobAcl = null;
+        JobAclEntry jobAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 jobAcl = transformStudyAclToJobAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             jobAcl = resolveJobPermissions(studyId, jobId, userId);
@@ -554,11 +562,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        CohortAclEntry cohortAcl = null;
+        CohortAclEntry cohortAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 cohortAcl = transformStudyAclToCohortAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             cohortAcl = resolveCohortPermissions(studyId, cohortId, userId);
@@ -653,11 +663,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        DatasetAclEntry datasetAcl = null;
+        DatasetAclEntry datasetAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 datasetAcl = transformStudyAclToDatasetAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             datasetAcl = resolveDatasetPermissions(studyId, datasetId, userId);
@@ -752,11 +764,13 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             return;
         }
 
-        DiseasePanelAclEntry panelAcl = null;
+        DiseasePanelAclEntry panelAcl;
         if (userId.equals(ADMIN)) {
             QueryResult<StudyAclEntry> studyAclQueryResult = metaDBAdaptor.getDaemonAcl(Arrays.asList(ADMIN));
             if (studyAclQueryResult.getNumResults() == 1) {
                 panelAcl = transformStudyAclToDiseasePanelAcl(studyAclQueryResult.first());
+            } else {
+                throw new CatalogException("Could not obtain the permissions for the admin");
             }
         } else {
             panelAcl = resolveDiseasePanelPermissions(studyId, panelId, userId);
@@ -1090,7 +1104,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Study> studyQueryResult = studyDBAdaptor.get(query, queryOptions);
 
         List<StudyAclEntry> studyAclList;
-        if (studyQueryResult == null || studyQueryResult.getNumResults() == 0) {
+        if (studyQueryResult.getNumResults() == 0) {
             studyAclList = Collections.emptyList();
         } else {
             studyAclList = studyQueryResult.first().getAcl();
@@ -1258,7 +1272,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Sample> queryResult = sampleDBAdaptor.get(query, queryOptions);
 
         List<SampleAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -1512,7 +1526,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<File> queryResult = fileDBAdaptor.get(query, queryOptions);
 
         List<FileAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -1775,7 +1789,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Individual> queryResult = individualDBAdaptor.get(query, queryOptions);
 
         List<IndividualAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -1976,7 +1990,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Cohort> queryResult = cohortDBAdaptor.get(query, queryOptions);
 
         List<CohortAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -2144,7 +2158,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Dataset> queryResult = datasetDBAdaptor.get(query, queryOptions);
 
         List<DatasetAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -2311,7 +2325,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<Job> queryResult = jobDBAdaptor.get(query, queryOptions);
 
         List<JobAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
@@ -2481,7 +2495,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         QueryResult<DiseasePanel> queryResult = panelDBAdaptor.get(query, queryOptions);
 
         List<DiseasePanelAclEntry> aclList;
-        if (queryResult != null && queryResult.getNumResults() == 1) {
+        if (queryResult.getNumResults() == 1) {
             aclList = queryResult.first().getAcl();
         } else {
             aclList = Collections.emptyList();
