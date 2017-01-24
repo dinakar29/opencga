@@ -181,26 +181,23 @@ public class DocumentToVariantStatsConverter implements ComplexTypeConverter<Var
             VariantStats variantStats = new VariantStats();
             variantStats.setRefAllele(variant.getReference());
             variantStats.setAltAllele(variant.getAlternate());
+            variantStats.setVariantType(variant.getType());
             convertToDataModelType(vs, variantStats);
-            if (variant != null) {
-                variantStats.setRefAllele(variant.getReference());
-                variantStats.setAltAllele(variant.getAlternate());
-                variantStats.setVariantType(variant.getType());
+
 //                    Integer fid = (Integer) vs.get(FILE_ID);
-                String sid = getStudyName((Integer) vs.get(STUDY_ID));
-                String cid = getCohortName((Integer) vs.get(STUDY_ID), (Integer) vs.get(COHORT_ID));
-                StudyEntry sourceEntry = null;
-                if (sid != null && cid != null) {
-                    sourceEntry = variant.getStudiesMap().get(sid);
-                    if (sourceEntry != null) {
-                        sourceEntry.setStats(cid, variantStats);
-                    } else {
-                        //This could happen if the study has been excluded
-                        logger.trace("ignoring non present source entry studyId={}", sid);
-                    }
+            String sid = getStudyName((Integer) vs.get(STUDY_ID));
+            String cid = getCohortName((Integer) vs.get(STUDY_ID), (Integer) vs.get(COHORT_ID));
+            final StudyEntry sourceEntry;
+            if (sid != null && cid != null) {
+                sourceEntry = variant.getStudiesMap().get(sid);
+                if (sourceEntry != null) {
+                    sourceEntry.setStats(cid, variantStats);
                 } else {
-                    logger.error("invalid mongo document: all studyId={}, cohortId={} should be present.", sid, cid);
+                    //This could happen if the study has been excluded
+                    logger.trace("ignoring non present source entry studyId={}", sid);
                 }
+            } else {
+                logger.error("invalid mongo document: all studyId={}, cohortId={} should be present.", sid, cid);
             }
         }
     }

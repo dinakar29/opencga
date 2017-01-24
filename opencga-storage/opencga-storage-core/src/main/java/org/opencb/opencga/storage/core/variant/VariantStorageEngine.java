@@ -457,7 +457,6 @@ public abstract class VariantStorageEngine extends StorageEngine<VariantDBAdapto
             try {
                 studyConfigurationManager = StudyConfigurationManager.build(studyConfigurationManagerClassName, options);
             } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
                 logger.error("Error creating a StudyConfigurationManager. Creating default StudyConfigurationManager", e);
                 throw new RuntimeException(e);
             }

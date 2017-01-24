@@ -304,9 +304,7 @@ public class VariantHadoopDBAdaptor implements VariantDBAdaptor {
         long startTime = System.currentTimeMillis();
         String sql = queryParser.parse(query, new QueryOptions(VariantSqlQueryParser.COUNT, true));
         logger.info(sql);
-        try {
-            Statement statement = getJdbcConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Statement statement = getJdbcConnection().createStatement(); ResultSet resultSet = statement.executeQuery(sql)) {
             resultSet.next();
             long count = resultSet.getLong(1);
             return new QueryResult<>("count", ((int) (System.currentTimeMillis() - startTime)),
@@ -418,7 +416,7 @@ public class VariantHadoopDBAdaptor implements VariantDBAdaptor {
 
             logger.debug("Creating {} iterator", VariantHBaseResultSetIterator.class);
             try {
-                if (true) {
+                if (options.getBoolean("explain", true)) {
                     logger.info("---- " + "EXPLAIN " + sql);
                     phoenixHelper.getPhoenixHelper().explain(getJdbcConnection(), sql, Logger::info);
 //                    logger.info("EXPLANATION: \n" + explain);

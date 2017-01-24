@@ -70,6 +70,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -328,7 +329,7 @@ public abstract class AbstractHadoopVariantStoragePipeline extends VariantStorag
 
                     input = variantsOutputPath.toUri();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new UncheckedIOException(e);
                 }
             }
         }

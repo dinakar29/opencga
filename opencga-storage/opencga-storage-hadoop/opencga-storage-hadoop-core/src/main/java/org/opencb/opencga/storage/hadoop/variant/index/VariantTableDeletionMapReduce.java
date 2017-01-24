@@ -131,12 +131,12 @@ public class VariantTableDeletionMapReduce extends AbstractVariantTableMapReduce
     private void removeSample(Variant var, String sampleName) throws IllegalStateException {
         StudyEntry se = var.getStudies().get(0);
         if (se == null) {
-            throw new IllegalStateException(String.format("No study found in variant {0}", var));
+            throw new IllegalStateException("No study found in variant " + var);
         }
         LinkedHashMap<String, Integer> samplesPos = se.getSamplesPosition();
         Integer remPos = samplesPos.get(sampleName);
         if (remPos == null) {
-            throw new IllegalStateException(String.format("Sample {0} not found for variant {1}", sampleName, var));
+            throw new IllegalStateException("Sample " + sampleName + " not found for variant " + var);
         }
         LinkedHashMap<String, Integer> updSamplesPos = new LinkedHashMap<>(samplesPos.size() - 1);
         samplesPos.forEach((k, v) -> updSamplesPos.put(k, v < remPos ? v : v - 1)); // update positions

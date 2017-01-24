@@ -731,7 +731,7 @@ public class VariantMongoDBAdaptor implements VariantDBAdaptor {
             //      {$push:{st:{$each: [{cid:"Cohort 1", fid:"file 1", ... , defaultValue:3},{cid:"Cohort 2", ... , defaultValue:3}] }}}
             // )
 
-            if (!cohorts.isEmpty()) {
+            if (!cohorts.isEmpty() && variantStats != null) {
                 String id = variantConverter.buildStorageId(wrapper.getChromosome(), wrapper.getPosition(),
                         variantStats.getRefAllele(), variantStats.getAltAllele());
 

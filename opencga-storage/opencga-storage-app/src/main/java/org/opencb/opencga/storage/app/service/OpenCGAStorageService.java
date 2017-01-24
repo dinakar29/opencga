@@ -48,7 +48,7 @@ public final class OpenCGAStorageService implements Runnable {
 
     private Server server;
     private Thread thread;
-    private boolean exit = false;
+    private volatile boolean exit = false;
 
     private static Logger logger = LoggerFactory.getLogger(OpenCGAStorageService.class);
 
@@ -92,9 +92,8 @@ public final class OpenCGAStorageService implements Runnable {
             try {
                 Thread.sleep(sleep);
             } catch (InterruptedException e) {
-                if (!exit) {
-                    e.printStackTrace();
-                }
+                exit = true;
+                break;
             }
             logger.info("----- WakeUp {} -----", TimeUtils.getTimeMillis());
 

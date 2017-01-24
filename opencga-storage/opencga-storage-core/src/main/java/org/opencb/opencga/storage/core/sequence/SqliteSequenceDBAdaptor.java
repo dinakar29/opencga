@@ -212,12 +212,12 @@ public class SqliteSequenceDBAdaptor extends SequenceDBAdaptor {
         sqliteManager.createTable(META_TABLE, metaColumns);
 
 
-        FastaReader reader;
         Fasta fasta;
         //Insert Sequences
-        reader = new FastaReader(fastaInput.toPath());
-        while ((fasta = reader.read()) != null) {
-            serializeGenomeSequence(fasta);
+        try (FastaReader reader = new FastaReader(fastaInput.toPath())) {
+            while ((fasta = reader.read()) != null) {
+                serializeGenomeSequence(fasta);
+            }
         }
 
         //Create Index

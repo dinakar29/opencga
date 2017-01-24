@@ -64,17 +64,14 @@ public class VariantToAvroBinaryConverter implements ComplexTypeConverter<Varian
     @Override
     public Binary convertToStorageType(Variant variant) {
         BinaryEncoder encoder = null;
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//            byteArrayOutputStream.reset();
-        OutputStream outputStream = byteArrayOutputStream;
-        try {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 //                outputStream = new GZIPOutputStream(outputStream);
             encoder = EncoderFactory.get().directBinaryEncoder(outputStream, encoder);
             writer.write(variant.getImpl(), encoder);
             encoder.flush();
             outputStream.flush();
             outputStream.close();
-            byte[] data = byteArrayOutputStream.toByteArray();
+            byte[] data = outputStream.toByteArray();
             data = CompressionUtils.compress(data);
             return new Binary(data);
         } catch (IOException e) {
