@@ -55,7 +55,7 @@ public class LocalAlignmentStoragePipeline implements StoragePipeline {
     }
 
     @Override
-    public URI transform(URI input, URI pedigree, URI output) throws Exception {
+    public URI transform(URI input, URI pedigree, URI output) throws IOException, StorageEngineException {
         Path path = Paths.get(input.getRawPath());
         FileUtils.checkFile(path);
 
@@ -71,7 +71,12 @@ public class LocalAlignmentStoragePipeline implements StoragePipeline {
         // 2. Calculate stats and store in a file
         Path statsPath = workspace.resolve(path.getFileName() + ".stats");
         if (!statsPath.toFile().exists()) {
-            AlignmentGlobalStats stats = bamManager.stats();
+            AlignmentGlobalStats stats = null;
+            try {
+                stats = bamManager.stats();
+            } catch (Exception e) {
+                throw new StorageEngineException("Error calculating alignment stats", e);
+            }
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectWriter objectWriter = objectMapper.writerFor(AlignmentGlobalStats.class);
             objectWriter.writeValue(statsPath.toFile(), stats);
@@ -129,7 +134,7 @@ public class LocalAlignmentStoragePipeline implements StoragePipeline {
     }
 
     @Override
-    public URI postTransform(URI input) throws Exception {
+    public URI postTransform(URI input) {
         return input;
     }
 

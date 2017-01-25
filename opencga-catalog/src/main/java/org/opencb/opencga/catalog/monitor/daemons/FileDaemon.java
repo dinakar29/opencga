@@ -53,9 +53,13 @@ public class FileDaemon extends MonitorParentDaemon {
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 if (!exit) {
-                    e.printStackTrace();
+                    logger.info("Got InterruptedException!", e);
                 }
+                // Break loop
+                exit = true;
+                break;
             }
             logger.info("----- FILE DAEMON -----", TimeUtils.getTimeMillis());
 

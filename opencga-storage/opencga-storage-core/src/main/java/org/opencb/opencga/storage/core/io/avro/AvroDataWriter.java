@@ -60,7 +60,7 @@ public class AvroDataWriter<T extends GenericRecord> implements DataWriter<T> {
             avroWriter.setCodec(gzip ? CodecFactory.deflateCodec(CodecFactory.DEFAULT_DEFLATE_LEVEL) : CodecFactory.nullCodec());
             avroWriter.create(schema, outputPath.toFile());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return true;
     }
@@ -89,7 +89,7 @@ public class AvroDataWriter<T extends GenericRecord> implements DataWriter<T> {
         try {
             avroWriter.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return true;
     }

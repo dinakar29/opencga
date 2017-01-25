@@ -77,7 +77,7 @@ public class StorageServerMain {
                             commandExecutor = new GrpcCommandExecutor(serverCliOptionsParser.getGrpcCommandOptions());
                             break;
                         default:
-                            System.out.printf("ERROR: not valid command passed: '" + parsedCommand + "'");
+                            System.out.println("ERROR: not valid command passed: '" + parsedCommand + '\'');
                             break;
                     }
 

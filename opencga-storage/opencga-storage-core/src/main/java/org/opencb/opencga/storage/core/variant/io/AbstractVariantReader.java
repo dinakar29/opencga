@@ -10,6 +10,7 @@ import org.opencb.commons.utils.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -58,7 +59,7 @@ public abstract class AbstractVariantReader implements VariantReader {
                 source.setStats(readSource.getStats());
                 source.setType(readSource.getType());
             } catch (IOException ex) {
-                throw new RuntimeException(ex);
+                throw new UncheckedIOException(ex);
             }
         }
 

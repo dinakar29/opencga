@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 /**
@@ -68,8 +69,7 @@ public class VariantAvroWriter implements DataWriter<Variant> {
         try {
             writer.create(schema, outputStream);
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            throw new UncheckedIOException(e);
         }
         return true;
     }
@@ -84,8 +84,7 @@ public class VariantAvroWriter implements DataWriter<Variant> {
             try {
                 writer.append(variant.getImpl());
             } catch (IOException e) {
-                e.printStackTrace();
-                return false;
+                throw new UncheckedIOException(e);
             }
         }
         logger.debug("Written " + batch.size());
@@ -97,8 +96,7 @@ public class VariantAvroWriter implements DataWriter<Variant> {
         try {
             writer.close();
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            throw new UncheckedIOException(e);
         }
         return true;
     }

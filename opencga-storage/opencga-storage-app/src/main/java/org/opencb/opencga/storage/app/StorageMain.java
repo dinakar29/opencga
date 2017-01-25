@@ -81,7 +81,7 @@ public class StorageMain {
                             commandExecutor = new VariantCommandExecutor(cliOptionsParser.getVariantCommandOptions());
                             break;
                         default:
-                            System.out.printf("ERROR: not valid command passed: '" + parsedCommand + "'");
+                            System.out.println("ERROR: not valid command passed: '" + parsedCommand + '\'');
                             break;
                     }
 

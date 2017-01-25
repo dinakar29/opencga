@@ -16,7 +16,6 @@
 
 package org.opencb.opencga.storage.core.variant.transform;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -37,6 +36,8 @@ import org.opencb.opencga.storage.core.variant.io.json.mixin.VariantSourceJsonMi
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -203,8 +204,8 @@ public abstract class VariantTransformTask<T> implements ParallelTaskRunner.Task
         try {
             String sourceJsonString = variantSourceObjectWriter.writeValueAsString(source);
             StringDataWriter.write(outputFileJsonFile, Collections.singletonList(sourceJsonString));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
         logger.debug("Time txt2hts: " + this.htsConvertTime.get());
         logger.debug("Time hts2biodata: " + this.biodataConvertTime.get());

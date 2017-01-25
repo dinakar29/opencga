@@ -310,7 +310,7 @@ public class DefaultVariantAnnotationManager implements VariantAnnotationManager
                     throw new StorageEngineException("Error executing ParallelTaskRunner", e);
                 }
             } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e); // This should never happen!
+                throw new IllegalStateException(e); // This should never happen!
             }
         } else if (fileName.endsWith(".bed") || fileName.endsWith(".bed.gz")) {
             try {
@@ -335,7 +335,7 @@ public class DefaultVariantAnnotationManager implements VariantAnnotationManager
                     throw new StorageEngineException("Error executing ParallelTaskRunner", e);
                 }
             } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e); // This should never happen!
+                throw new IllegalStateException(e); // This should never happen!
             }
         } else if (fileName.endsWith(".vcf") || fileName.endsWith(".vcf.gz")) {
             InputStream is = new FileInputStream(path.toFile());

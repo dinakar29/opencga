@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RestStorageServer extends AbstractStorageServer {
 
-    private static Server server;
+    private Server server;
 
     private boolean exit;
 

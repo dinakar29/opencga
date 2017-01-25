@@ -44,24 +44,24 @@ import static java.lang.Math.toIntExact;
  */
 public class CatalogStudyConfigurationFactory {
 
-    public static final QueryOptions ALL_FILES_QUERY_OPTIONS = new QueryOptions()
+    private static final QueryOptions ALL_FILES_QUERY_OPTIONS = new QueryOptions()
             .append("include", Arrays.asList("projects.studies.files.id", "projects.studies.files.name", "projects.studies.files.path",
                     "projects.studies.files.sampleIds", "projects.studies.files.attributes.variantSource.metadata.variantFileHeader"));
-    public static final Query ALL_FILES_QUERY = new Query()
+    private static final Query ALL_FILES_QUERY = new Query()
             .append(FileDBAdaptor.QueryParams.BIOFORMAT.key(), Arrays.asList(File.Bioformat.VARIANT, File.Bioformat.ALIGNMENT));
 
-    public static final QueryOptions INDEXED_FILES_QUERY_OPTIONS = new QueryOptions()
+    private static final QueryOptions INDEXED_FILES_QUERY_OPTIONS = new QueryOptions()
             .append("include", Arrays.asList("projects.studies.files.id", "projects.studies.files.name", "projects.studies.files.path"));
-    public static final Query INDEXED_FILES_QUERY = new Query()
+    private static final Query INDEXED_FILES_QUERY = new Query()
             .append(FileDBAdaptor.QueryParams.INDEX_STATUS_NAME.key(), FileIndex.IndexStatus.READY);
 
-    public static final QueryOptions SAMPLES_QUERY_OPTIONS = new QueryOptions("include",
+    private static final QueryOptions SAMPLES_QUERY_OPTIONS = new QueryOptions("include",
             Arrays.asList("projects.studies.samples.id", "projects.studies.samples.name"));
 
-    public static final Query COHORTS_QUERY = new Query();
-    public static final QueryOptions COHORTS_QUERY_OPTIONS = new QueryOptions();
+    private static final Query COHORTS_QUERY = new Query();
+    private static final QueryOptions COHORTS_QUERY_OPTIONS = new QueryOptions();
 
-    public static final QueryOptions INVALID_COHORTS_QUERY_OPTIONS = new QueryOptions()
+    private static final QueryOptions INVALID_COHORTS_QUERY_OPTIONS = new QueryOptions()
             .append(CohortDBAdaptor.QueryParams.STATUS_NAME.key(), Cohort.CohortStatus.INVALID)
             .append("include",
                     Arrays.asList("projects.studies.cohorts.name", "projects.studies.cohorts.id", "projects.studies.cohorts.status"));
@@ -69,8 +69,8 @@ public class CatalogStudyConfigurationFactory {
 
     private final CatalogManager catalogManager;
 
-    public static final String STUDY_CONFIGURATION_FIELD = "studyConfiguration";
-    public static final QueryOptions STUDY_QUERY_OPTIONS = new QueryOptions("include", Arrays.asList(
+    private static final String STUDY_CONFIGURATION_FIELD = "studyConfiguration";
+    private static final QueryOptions STUDY_QUERY_OPTIONS = new QueryOptions("include", Arrays.asList(
             "projects.studies.id",
             "projects.studies.alias",
             "projects.studies.attributes." + STUDY_CONFIGURATION_FIELD,

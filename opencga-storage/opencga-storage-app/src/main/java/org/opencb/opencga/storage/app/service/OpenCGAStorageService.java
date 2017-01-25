@@ -92,6 +92,11 @@ public final class OpenCGAStorageService implements Runnable {
             try {
                 Thread.sleep(sleep);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (!exit) {
+                    logger.info("Got InterruptedException!", e);
+                }
+                // Break loop
                 exit = true;
                 break;
             }
@@ -109,6 +114,9 @@ public final class OpenCGAStorageService implements Runnable {
         try {
             Thread.sleep(200);
             server.stop();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -128,7 +136,7 @@ public final class OpenCGAStorageService implements Runnable {
             logger.info("Join to Thread");
             thread.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
             return 2;
         }
         return 0;

@@ -50,9 +50,9 @@ public interface StoragePipeline extends AutoCloseable {
 
     URI preTransform(URI input) throws IOException, FileFormatException, StorageEngineException;
 
-    URI transform(URI input, URI pedigree, URI output) throws Exception;
+    URI transform(URI input, URI pedigree, URI output) throws IOException, FileFormatException, StorageEngineException;
 
-    URI postTransform(URI input) throws Exception;
+    URI postTransform(URI input) throws IOException, FileFormatException, StorageEngineException;
 
     default ObjectMap getTransformStats() {
         return new ObjectMap();

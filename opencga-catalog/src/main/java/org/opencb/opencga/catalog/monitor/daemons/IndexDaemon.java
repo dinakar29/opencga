@@ -95,6 +95,10 @@ public class IndexDaemon extends MonitorParentDaemon {
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                if (!exit) {
+                    logger.info("Got InterruptedException!", e);
+                }
                 // Break loop
                 exit = true;
                 break;

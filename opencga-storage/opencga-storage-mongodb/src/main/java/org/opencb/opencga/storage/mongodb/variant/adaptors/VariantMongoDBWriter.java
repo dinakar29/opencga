@@ -23,11 +23,11 @@ import org.opencb.commons.datastore.core.QueryOptions;
 import org.opencb.commons.datastore.core.QueryResult;
 import org.opencb.commons.io.DataWriter;
 import org.opencb.opencga.storage.core.metadata.StudyConfiguration;
-import org.opencb.opencga.storage.mongodb.variant.load.MongoDBVariantWriteResult;
 import org.opencb.opencga.storage.mongodb.variant.converters.DocumentToSamplesConverter;
 import org.opencb.opencga.storage.mongodb.variant.converters.DocumentToStudyVariantEntryConverter;
 import org.opencb.opencga.storage.mongodb.variant.converters.DocumentToVariantConverter;
 import org.opencb.opencga.storage.mongodb.variant.converters.DocumentToVariantStatsConverter;
+import org.opencb.opencga.storage.mongodb.variant.load.MongoDBVariantWriteResult;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -60,7 +61,7 @@ public class VariantMongoDBWriter implements DataWriter<Variant> {
     private DocumentToSamplesConverter sampleConverter;
 
     //    private long numVariantsWritten;
-    private static long staticNumVariantsWritten;
+    private static final AtomicLong STATIC_NUM_VARIANTS_WRITTEN = new AtomicLong();
 
     //    private long checkExistsTime = 0;
 //    private long checkExistsDBTime = 0;
@@ -89,7 +90,7 @@ public class VariantMongoDBWriter implements DataWriter<Variant> {
 
     @Override
     public boolean open() {
-        staticNumVariantsWritten = 0;
+        STATIC_NUM_VARIANTS_WRITTEN.set(0);
         insertionTime = 0;
         coveredChromosomes.clear();
 //        numVariantsWritten = 0;
@@ -116,10 +117,10 @@ public class VariantMongoDBWriter implements DataWriter<Variant> {
     public boolean write(List<Variant> data) {
 //        return write_setOnInsert(data);
         synchronized (variantSourceWritten) {
-            long l = staticNumVariantsWritten / 1000;
-            staticNumVariantsWritten += data.size();
-            if (staticNumVariantsWritten / 1000 != l) {
-                logger.info("Num variants written " + staticNumVariantsWritten);
+            long l = STATIC_NUM_VARIANTS_WRITTEN.get() / 1000;
+            STATIC_NUM_VARIANTS_WRITTEN.addAndGet(data.size());
+            if (STATIC_NUM_VARIANTS_WRITTEN.get() / 1000 != l) {
+                logger.info("Num variants written " + STATIC_NUM_VARIANTS_WRITTEN.get());
             }
         }
 

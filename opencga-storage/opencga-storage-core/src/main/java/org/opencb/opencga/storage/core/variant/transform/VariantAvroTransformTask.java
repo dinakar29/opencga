@@ -26,6 +26,7 @@ import org.opencb.biodata.tools.variant.stats.VariantGlobalStatsCalculator;
 import org.opencb.hpg.bigdata.core.io.avro.AvroEncoder;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class VariantAvroTransformTask extends VariantTransformTask<ByteBuffer> {
         try {
             encoded = encoder.encode(avros);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return encoded;
     }

@@ -94,7 +94,7 @@ public class VariantRestWebService extends GenericRestWebService {
             // can't excede 1 million positions
             List<Region> regions = Region.parseRegions(options.getString(VariantQueryParams.REGION.key()));
             regions = regions == null ? Collections.emptyList() : regions;
-            int regionsSize = regions.stream().reduce(0, (size, r) -> size += r.getEnd() - r.getStart(), (a, b) -> a + b);
+            int regionsSize = regions.stream().reduce(0, (size, r) -> size + r.getEnd() - r.getStart(), (a, b) -> a + b);
 
             QueryResult queryResult;
             if (histogram) {

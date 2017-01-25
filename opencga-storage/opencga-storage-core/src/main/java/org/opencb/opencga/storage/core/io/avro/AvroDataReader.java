@@ -24,6 +24,7 @@ import org.opencb.commons.io.DataReader;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class AvroDataReader<T extends GenericRecord> implements DataReader<T> {
         try {
             dataFileReader = new DataFileReader<>(file, datumReader);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return true;
     }
@@ -60,7 +61,7 @@ public class AvroDataReader<T extends GenericRecord> implements DataReader<T> {
         try {
             dataFileReader.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
         return true;
     }

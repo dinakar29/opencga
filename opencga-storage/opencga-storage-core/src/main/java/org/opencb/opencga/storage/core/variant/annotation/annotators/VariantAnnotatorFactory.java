@@ -66,8 +66,7 @@ public final class VariantAnnotatorFactory {
                     }
                 } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException
                         | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                    throw new VariantAnnotatorException("Unable to create annotation source from \"" + className + "\"", e);
+                    throw new VariantAnnotatorException("Unable to create annotation source from \"" + className + '"', e);
                 }
         }
 
