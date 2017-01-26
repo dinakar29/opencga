@@ -436,19 +436,15 @@ public class IndividualManager extends AbstractManager implements IIndividualMan
             authorizationManager.memberHasPermissionsInStudy(studyId, userId);
         }
 
-        QueryResult<Individual> queryResult = null;
+        QueryResult<Individual> queryResult = new QueryResult<>("Individual search");
         for (Long studyId : studyIds) {
             query.append(IndividualDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
             QueryResult<Individual> queryResultAux = individualDBAdaptor.get(query, options);
             authorizationManager.filterIndividuals(userId, studyId, queryResultAux.getResult());
 
-            if (queryResult == null) {
-                queryResult = queryResultAux;
-            } else {
-                queryResult.getResult().addAll(queryResultAux.getResult());
-                queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
-                queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
-            }
+            queryResult.getResult().addAll(queryResultAux.getResult());
+            queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
+            queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
         }
         queryResult.setNumResults(queryResult.getResult().size());
 
@@ -645,13 +641,13 @@ public class IndividualManager extends AbstractManager implements IIndividualMan
         authorizationManager.checkStudyPermission(studyId, userId, StudyAclEntry.StudyPermissions.VIEW_INDIVIDUALS);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
+//        boolean count = true;
 //        query.append(CatalogIndividualDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
-        QueryResult queryResult = null;
-        if (count) {
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = individualDBAdaptor.rank(query, field, numResults, asc);
-        }
+        queryResult = individualDBAdaptor.rank(query, field, numResults, asc);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }
@@ -811,7 +807,7 @@ public class IndividualManager extends AbstractManager implements IIndividualMan
         QueryResult<Individual> individualQueryResult = commonSearchAnnotationSet(id, studyStr, variableSetId, annotation, sessionId);
         List<ObjectMap> annotationSets;
 
-        if (individualQueryResult == null || individualQueryResult.getNumResults() == 0) {
+        if (individualQueryResult.getNumResults() == 0) {
             annotationSets = Collections.emptyList();
         } else {
             annotationSets = individualQueryResult.first().getAnnotationSetAsMap();

@@ -512,6 +512,7 @@ public class FileWSServer extends OpenCGAWSServer {
                     FileAclEntry.FilePermissions.VIEW_CONTENT);
 
             DataInputStream stream = catalogManager.downloadFile(resource.getResourceId(), start, limit, sessionId);
+            stream.close();
 //             String content = org.apache.commons.io.IOUtils.toString(stream);
             return createOkResponse(stream, MediaType.TEXT_PLAIN_TYPE);
         } catch (Exception e) {

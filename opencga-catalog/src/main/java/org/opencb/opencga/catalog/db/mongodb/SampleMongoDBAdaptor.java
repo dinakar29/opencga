@@ -424,7 +424,7 @@ public class SampleMongoDBAdaptor extends AnnotationMongoDBAdaptor implements Sa
         }
         qOptions = filterOptions(qOptions, FILTER_ROUTE_SAMPLES);
         QueryResult<Sample> sampleQueryResult;
-        if (qOptions.get("lazy") != null && !qOptions.getBoolean("lazy")) {
+        if (!qOptions.getBoolean("lazy", true)) {
             Bson match = Aggregates.match(bson);
             Bson lookup = Aggregates.lookup("individual", QueryParams.INDIVIDUAL_ID.key(), IndividualDBAdaptor.QueryParams.ID.key(),
                     "individual");
@@ -432,7 +432,7 @@ public class SampleMongoDBAdaptor extends AnnotationMongoDBAdaptor implements Sa
         } else {
             sampleQueryResult = sampleCollection.find(bson, sampleConverter, qOptions);
         }
-        logger.debug("Sample get: query : {}, dbTime: {}", bson, qOptions == null ? "" : qOptions.toJson(), sampleQueryResult.getDbTime());
+        logger.debug("Sample get: query : {}, dbTime: {}", bson, qOptions.toJson(), sampleQueryResult.getDbTime());
         return endQuery("Get sample", startTime, sampleQueryResult);
     }
 

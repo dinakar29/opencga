@@ -248,19 +248,15 @@ public class CohortManager extends AbstractManager implements ICohortManager {
             authorizationManager.memberHasPermissionsInStudy(studyId, userId);
         }
 
-        QueryResult<Cohort> queryResult = null;
+        QueryResult<Cohort> queryResult = new QueryResult<>("Search cohort");
         for (Long studyId : studyIds) {
             query.append(CohortDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
             QueryResult<Cohort> queryResultAux = cohortDBAdaptor.get(query, options);
             authorizationManager.filterCohorts(userId, studyId, queryResultAux.getResult());
 
-            if (queryResult == null) {
-                queryResult = queryResultAux;
-            } else {
-                queryResult.getResult().addAll(queryResultAux.getResult());
-                queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
-                queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
-            }
+            queryResult.getResult().addAll(queryResultAux.getResult());
+            queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
+            queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
         }
         queryResult.setNumResults(queryResult.getResult().size());
 
@@ -366,13 +362,13 @@ public class CohortManager extends AbstractManager implements ICohortManager {
         query.put(IndividualDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
+//        boolean count = true;
 //        query.append(CatalogFileDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
-        QueryResult queryResult = null;
-        if (count) {
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = cohortDBAdaptor.groupBy(query, fields, options);
-        }
+        queryResult = cohortDBAdaptor.groupBy(query, fields, options);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }
@@ -598,7 +594,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
         QueryResult<Cohort> cohortQueryResult = commonSearchAnnotationSet(id, studyStr, variableSetId, annotation, sessionId);
         List<ObjectMap> annotationSets;
 
-        if (cohortQueryResult == null || cohortQueryResult.getNumResults() == 0) {
+        if (cohortQueryResult.getNumResults() == 0) {
             annotationSets = Collections.emptyList();
         } else {
             annotationSets = cohortQueryResult.first().getAnnotationSetAsMap();

@@ -430,13 +430,13 @@ public class JobManager extends AbstractManager implements IJobManager {
         authorizationManager.checkStudyPermission(studyId, userId, StudyAclEntry.StudyPermissions.VIEW_JOBS);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
+//        boolean count = true;
         //query.append(CatalogJobDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
-        QueryResult queryResult = null;
-        if (count) {
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = jobDBAdaptor.rank(query, field, numResults, asc);
-        }
+        queryResult = jobDBAdaptor.rank(query, field, numResults, asc);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }

@@ -373,19 +373,15 @@ public class SampleManager extends AbstractManager implements ISampleManager {
             query.put(SampleDBAdaptor.QueryParams.INDIVIDUAL_ID.key(), resourceIds.getResourceIds());
         }
 
-        QueryResult<Sample> queryResult = null;
+        QueryResult<Sample> queryResult = new QueryResult<>("Sample search");
         for (Long studyId : studyIds) {
             query.append(SampleDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
             QueryResult<Sample> queryResultAux = sampleDBAdaptor.get(query, options);
             authorizationManager.filterSamples(userId, studyId, queryResultAux.getResult());
 
-            if (queryResult == null) {
-                queryResult = queryResultAux;
-            } else {
-                queryResult.getResult().addAll(queryResultAux.getResult());
-                queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
-                queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
-            }
+            queryResult.getResult().addAll(queryResultAux.getResult());
+            queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
+            queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
         }
         queryResult.setNumResults(queryResult.getResult().size());
 
@@ -632,13 +628,13 @@ public class SampleManager extends AbstractManager implements ISampleManager {
         authorizationManager.checkStudyPermission(studyId, userId, StudyAclEntry.StudyPermissions.VIEW_SAMPLES);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
+//        boolean count = true;
         //query.append(CatalogSampleDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
-        QueryResult queryResult = null;
-        if (count) {
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = sampleDBAdaptor.rank(query, field, numResults, asc);
-        }
+        queryResult = sampleDBAdaptor.rank(query, field, numResults, asc);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }
@@ -801,7 +797,7 @@ public class SampleManager extends AbstractManager implements ISampleManager {
         QueryResult<Sample> sampleQueryResult = commonSearchAnnotationSet(id, studyStr, variableSetId, annotation, sessionId);
         List<ObjectMap> annotationSets;
 
-        if (sampleQueryResult == null || sampleQueryResult.getNumResults() == 0) {
+        if (sampleQueryResult.getNumResults() == 0) {
             logger.debug("No samples found");
             annotationSets = Collections.emptyList();
         } else {

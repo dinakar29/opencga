@@ -458,13 +458,13 @@ public class StudyManager extends AbstractManager implements IStudyManager {
         authorizationManager.checkProjectPermission(projectId, userId, StudyAclEntry.StudyPermissions.VIEW_STUDY);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
+//        boolean count = true;
 //        query.append(CatalogFileDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
-        QueryResult queryResult = null;
-        if (count) {
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = studyDBAdaptor.rank(query, field, numResults, asc);
-        }
+        queryResult = studyDBAdaptor.rank(query, field, numResults, asc);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }
@@ -755,7 +755,7 @@ public class StudyManager extends AbstractManager implements IStudyManager {
 
         QueryResult<Study> studyQueryResult = studyDBAdaptor.get(query, queryOptions);
         List<Group> groupList;
-        if (studyQueryResult != null && studyQueryResult.getNumResults() == 1) {
+        if (studyQueryResult.getNumResults() == 1) {
             groupList = studyQueryResult.first().getGroups();
         } else {
             groupList = Collections.emptyList();
