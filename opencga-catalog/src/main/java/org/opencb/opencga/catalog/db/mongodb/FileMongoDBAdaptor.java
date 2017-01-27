@@ -263,10 +263,24 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
     @Override
     public QueryResult<File> update(long id, ObjectMap parameters) throws CatalogDBException {
         long startTime = startQuery();
-        checkId(id);
-        Query query = new Query(QueryParams.ID.key(), id);
-        update(query, parameters);
-        return endQuery("Update file", startTime, get(query, null));
+        Bson query = parseQuery(new Query(QueryParams.ID.key(), id), true);
+        Map<String, Object> myParams = getValidatedUpdateParams(parameters);
+
+        if (myParams.isEmpty()) {
+            logger.debug("The map of parameters to update file is empty. Originally it contained {}", parameters.safeToString());
+            throw new CatalogDBException("Nothing to update");
+        }
+
+        logger.debug("Update file. Query: {}, Update: {}",
+                query.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()), myParams);
+
+        QueryResult<UpdateResult> update = fileCollection.update(query, new Document("$set", myParams), new QueryOptions("multi", true));
+        if (update.first().getMatchedCount() == 0) {
+            throw new CatalogDBException("File " + id + " not found.");
+        }
+
+        QueryResult<File> queryResult = fileCollection.find(query, fileConverter, QueryOptions.empty());
+        return endQuery("Update file", startTime, queryResult);
     }
 
     @Override
@@ -282,7 +296,31 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
         }
 
         // We perform the update.
-        Bson queryBson = parseQuery(query, false);
+        Bson queryBson = parseQuery(query, true);
+        Map<String, Object> fileParameters = getValidatedUpdateParams(parameters);
+
+        if (!fileParameters.isEmpty()) {
+            logger.debug("Update file. Query: {}, Update: {}",
+                    queryBson.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()), fileParameters);
+
+            QueryResult<UpdateResult> update = fileCollection.update(queryBson, new Document("$set", fileParameters),
+                    new QueryOptions("multi", true));
+
+            // If the size of some of the files have been changed, notify to the correspondent study
+            if (fileQueryResult != null) {
+                long newDiskUsage = parameters.getLong(QueryParams.SIZE.key());
+                for (Document file : (List<Document>) fileQueryResult.getResult()) {
+                    long difDiskUsage = newDiskUsage - Long.parseLong(file.get(QueryParams.SIZE.key()).toString());
+                    long studyId = (long) file.get(PRIVATE_STUDY_ID);
+                    dbAdaptorFactory.getCatalogStudyDBAdaptor().updateDiskUsage(studyId, difDiskUsage);
+                }
+            }
+            return endQuery("Update file", startTime, Collections.singletonList(update.getResult().get(0).getModifiedCount()));
+        }
+        return endQuery("Update file", startTime, Collections.singletonList(0L));
+    }
+
+    private Map<String, Object> getValidatedUpdateParams(ObjectMap parameters) throws CatalogDBException {
         Map<String, Object> fileParameters = new HashMap<>();
 
         String[] acceptedParams = {
@@ -352,22 +390,22 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
 
         String[] acceptedObjectParams = {QueryParams.INDEX.key()};
         filterObjectParams(parameters, fileParameters, acceptedObjectParams);
+        return fileParameters;
+    }
 
-        if (!fileParameters.isEmpty()) {
-            QueryResult<UpdateResult> update = fileCollection.update(queryBson, new Document("$set", fileParameters), null);
+    @Override
+    public void delete(long id) throws CatalogDBException {
+        Query query = new Query(QueryParams.ID.key(), id);
+        delete(query);
+    }
 
-            // If the size of some of the files have been changed, notify to the correspondent study
-            if (fileQueryResult != null) {
-                long newDiskUsage = parameters.getLong(QueryParams.SIZE.key());
-                for (Document file : (List<Document>) fileQueryResult.getResult()) {
-                    long difDiskUsage = newDiskUsage - Long.parseLong(file.get(QueryParams.SIZE.key()).toString());
-                    long studyId = (long) file.get(PRIVATE_STUDY_ID);
-                    dbAdaptorFactory.getCatalogStudyDBAdaptor().updateDiskUsage(studyId, difDiskUsage);
-                }
-            }
-            return endQuery("Update file", startTime, Collections.singletonList(update.getResult().get(0).getModifiedCount()));
+    @Override
+    public void delete(Query query) throws CatalogDBException {
+        QueryResult<DeleteResult> remove = fileCollection.remove(parseQuery(query, false), null);
+
+        if (remove.first().getDeletedCount() == 0) {
+            throw CatalogDBException.deleteError("File");
         }
-        return endQuery("Update file", startTime, Collections.singletonList(0L));
     }
 
     @Override
@@ -415,144 +453,6 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
     }
 
     @Override
-    public QueryResult<File> delete(long fileId, QueryOptions queryOptions) throws CatalogDBException {
-        return delete(fileId, new ObjectMap(QueryParams.STATUS_NAME.key(), File.FileStatus.TRASHED), queryOptions);
-    }
-
-    @Override
-    public QueryResult<File> delete(long fileId, ObjectMap update, QueryOptions queryOptions) throws CatalogDBException {
-        long startTime = startQuery();
-
-
-        QueryResult<File> file = get(fileId, new QueryOptions(QueryOptions.INCLUDE, FILTER_ROUTE_FILES + QueryParams.STATUS.key()));
-        if (file == null || file.getNumResults() == 0) {
-            throw CatalogDBException.idNotFound("file", fileId);
-        }
-
-        String status = file.first().getStatus().getName();
-
-        boolean skipCheckCanDelete = update.getBoolean(SKIP_CHECK, false);
-        if (status.equalsIgnoreCase(File.FileStatus.READY)) {
-            if (!skipCheckCanDelete) {
-                checkCanDelete(fileId);
-            } else {
-                deleteReferencesToFile(fileId);
-            }
-        }
-
-        update(fileId, update);
-
-        Query query = new Query(QueryParams.ID.key(), fileId);
-        if (update.containsKey(QueryParams.STATUS_NAME.key())) {
-            query.append(QueryParams.STATUS_NAME.key(), update.getString(QueryParams.STATUS_NAME.key()));
-        }
-
-        return endQuery("Delete file", startTime, get(query, queryOptions));
-    }
-
-//    @Override
-//    public QueryResult<File> delete(long id, QueryOptions queryOptions) throws CatalogDBException {
-//        long startTime = startQuery();
-//
-//        checkFileId(id);
-//        // Check the file is active
-//        Query query = new Query(QueryParams.ID.key(), id).append(QueryParams.STATUS_NAME.key(), "!=" + File.FileStatus.TRASHED + ";!="
-//                + File.FileStatus.DELETED);
-//        if (count(query).first() == 0) {
-//            query.put(QueryParams.STATUS_NAME.key(), Status.TRASHED + "," + Status.DELETED);
-//            QueryOptions options = new QueryOptions(QueryOptions.INCLUDE, QueryParams.STATUS_NAME.key());
-//            File file = get(query, options).first();
-//            throw new CatalogDBException("The file {" + id + "} was already " + file.getName().getName());
-//        }
-//
-//        // If we don't find the force parameter, we check first if the file could be deleted.
-//        if (!queryOptions.containsKey(FORCE) || !queryOptions.getBoolean(FORCE)) {
-//            checkCanDelete(id);
-//        }
-//
-//        if (queryOptions.containsKey(FORCE) && queryOptions.getBoolean(FORCE)) {
-//            deleteReferencesToFile(id);
-//        }
-//
-//        // Change the status of the project to deleted
-//        setName(id, Status.TRASHED);
-//
-//        query = new Query(QueryParams.ID.key(), id)
-//                .append(QueryParams.STATUS_NAME.key(), Status.TRASHED);
-//
-//        return endQuery("Delete file", startTime, get(query, queryOptions));
-//    }
-
-    // TODO: Think
-    @Override
-    public QueryResult<Long> delete(Query query, QueryOptions queryOptions) throws CatalogDBException {
-        long startTime = startQuery();
-        query.append(QueryParams.STATUS_NAME.key(), Status.READY);
-        QueryResult<File> fileQueryResult = get(query, new QueryOptions(QueryOptions.INCLUDE, QueryParams.ID.key()));
-        for (File file : fileQueryResult.getResult()) {
-            delete(file.getId(), queryOptions);
-        }
-        return endQuery("Delete file", startTime, Collections.singletonList(fileQueryResult.getNumTotalResults()));
-    }
-
-    // TODO: Think
-    @Override
-    @Deprecated
-    public QueryResult<File> remove(long id, QueryOptions queryOptions) throws CatalogDBException {
-        return null;
-//        long startTime = startQuery();
-//        checkFileId(id);
-//        Query query = new Query(QueryParams.ID.key(), id).append(QueryParams.STATUS_NAME.key(), "!=" + File.FileStatus.REMOVED);
-//        QueryOptions options = new QueryOptions(QueryOptions.INCLUDE,
-//                FILTER_ROUTE_FILES + QueryParams.ID.key() + "," + FILTER_ROUTE_FILES + QueryParams.STATUS.key());
-//        QueryResult<File> fileQueryResult = get(query, options);
-//        return endQuery("Remove file", startTime,
-//                remove(fileQueryResult.first().getId(), fileQueryResult.first().getName().getName(), queryOptions));
-    }
-
-    // TODO: Think
-    @Override
-    @Deprecated
-    public QueryResult<Long> remove(Query query, QueryOptions queryOptions) throws CatalogDBException {
-        return null;
-//        long startTime = startQuery();
-//        // In case there is a status set in the query, we take it out.
-//        query.put(QueryParams.STATUS_NAME.key(), "!=" + File.FileStatus.REMOVED);
-//        QueryOptions options = new QueryOptions(QueryOptions.INCLUDE,
-//                FILTER_ROUTE_FILES + QueryParams.ID.key() + "," + FILTER_ROUTE_FILES + QueryParams.STATUS.key());
-//        QueryResult<File> fileQueryResult = get(query, options);
-//
-//        for (File file : fileQueryResult.getResult()) {
-//            remove(file.getId(), file.getName().getName(), queryOptions);
-//        }
-//        return endQuery("Remove file", startTime, Collections.singletonList(fileQueryResult.getNumTotalResults()));
-    }
-
-    @Deprecated
-    private QueryResult<File> remove(long fileId, String currentStatus, QueryOptions queryOptions) throws CatalogDBException {
-        return null;
-//        long startTime = startQuery();
-//        if (currentStatus.equals(File.FileStatus.DELETED)) { // We can change the status directly to Removed !
-//            setName(fileId, File.FileStatus.REMOVED);
-//       } else if (!currentStatus.equals(File.FileStatus.REMOVED)) { // If it's different from removed, we have to take care of everything.
-//
-//            if (!queryOptions.containsKey(FORCE) || !queryOptions.getBoolean(FORCE)) {
-//                checkCanDelete(fileId);
-//            }
-//
-//            if (queryOptions.containsKey(FORCE) && queryOptions.getBoolean(FORCE)) {
-//                deleteReferencesToFile(fileId);
-//            }
-//
-//            // Change the status of the file to removed
-//            setName(fileId, File.FileStatus.REMOVED);
-//        }
-//
-//        Query query = new Query(QueryParams.ID.key(), fileId).append(QueryParams.STATUS_NAME.key(), Status.DELETED);
-//        return endQuery("Remove file", startTime, get(query, queryOptions));
-    }
-
-    @Override
     public QueryResult<Long> restore(Query query, QueryOptions queryOptions) throws CatalogDBException {
         long startTime = startQuery();
         query.put(QueryParams.STATUS_NAME.key(), Status.TRASHED);
@@ -576,27 +476,6 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
         query = new Query(QueryParams.ID.key(), id);
 
         return endQuery("Restore file", startTime, get(query, null));
-    }
-
-    public QueryResult<File> clean(int id) throws CatalogDBException {
-        long startTime = startQuery();
-        QueryResult<File> file = get(id, new QueryOptions());
-        QueryResult<DeleteResult> deleteResult = fileCollection.remove(new Document(QueryParams.ID.key(), id), null);
-        if (deleteResult.getNumResults() == 1) {
-            return endQuery("Delete file", startTime, file);
-        } else {
-            throw CatalogDBException.deleteError("File");
-        }
-    }
-
-    public void checkFileNotInUse(long fileId) throws CatalogDBException {
-        Query query = new Query(JobDBAdaptor.QueryParams.INPUT.key(), fileId);
-        QueryResult<Long> count = dbAdaptorFactory.getCatalogJobDBAdaptor().count(query);
-
-        if (count.first() > 0) {
-            throw CatalogDBException.fileInUse(fileId, count.getNumResults());
-        }
-
     }
 
     @Override
@@ -859,14 +738,14 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
         Long count = dbAdaptorFactory.getCatalogJobDBAdaptor().count(query).first();
         if ((count > 0)) {
             throw new CatalogDBException("The file " + fileId + " cannot be deleted/removed because it is being used as input of "
-                    + count + " jobs. Please, consider using the parameter force if you are sure you want to delete it.");
+                    + count + " jobs.");
         }
 
         query = new Query(DatasetDBAdaptor.QueryParams.FILES.key(), fileId);
         count = dbAdaptorFactory.getCatalogDatasetDBAdaptor().count(query).first();
         if ((count > 0)) {
             throw new CatalogDBException("The file " + fileId + " cannot be deleted/removed because it is part of "
-                    + count + " dataset(s). Please, consider using the parameter force if you are sure you want to delete it.");
+                    + count + " dataset(s).");
         }
 
     }

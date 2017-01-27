@@ -278,6 +278,9 @@ public class CohortManager extends AbstractManager implements ICohortManager {
 
         for (Map.Entry<String, Object> param : parameters.entrySet()) {
             CohortDBAdaptor.QueryParams queryParam = CohortDBAdaptor.QueryParams.getParam(param.getKey());
+            if (queryParam == null) {
+                throw new CatalogException("Cannot update " + param.getKey());
+            }
             switch (queryParam) {
                 case NAME:
                 case CREATION_DATE:
@@ -289,8 +292,8 @@ public class CohortManager extends AbstractManager implements ICohortManager {
             }
         }
 
-        Cohort cohort = get(cohortId, new QueryOptions(QueryOptions.INCLUDE, "projects.studies.cohorts."
-                + CohortDBAdaptor.QueryParams.STATUS_NAME.key()), sessionId).first();
+        Cohort cohort = get(cohortId, new QueryOptions(QueryOptions.INCLUDE, CohortDBAdaptor.QueryParams.STATUS_NAME.key()), sessionId)
+                .first();
         if (parameters.containsKey(CohortDBAdaptor.QueryParams.SAMPLES.key())
                 || parameters.containsKey(CohortDBAdaptor.QueryParams.NAME.key())/* || params.containsKey("type")*/) {
             switch (cohort.getStatus().getName()) {

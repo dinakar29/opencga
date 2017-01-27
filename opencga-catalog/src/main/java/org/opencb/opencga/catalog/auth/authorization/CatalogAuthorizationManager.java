@@ -1180,6 +1180,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<StudyAclEntry> updateStudyAcl(String userId, long studyId, String member, @Nullable String addPermissions,
                                                      @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         studyDBAdaptor.checkId(studyId);
         checkMembers(dbAdaptorFactory, studyId, Arrays.asList(member));
         checkStudyPermission(studyId, userId, StudyAclEntry.StudyPermissions.SHARE_STUDY);
@@ -1317,7 +1319,7 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
             }
         }
 
-        return sampleDBAdaptor.getAcl(studyId, members);
+        return sampleDBAdaptor.getAcl(sampleId, members);
     }
 
     @Override
@@ -1345,6 +1347,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<SampleAclEntry> updateSampleAcl(String userId, long sampleId, String member, @Nullable String addPermissions,
                                                        @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         sampleDBAdaptor.checkId(sampleId);
         checkSamplePermission(sampleId, userId, SampleAclEntry.SamplePermissions.SHARE);
 
@@ -1619,8 +1623,11 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     }
 
     @Override
-    public List<QueryResult<FileAclEntry>> updateFileAcl(AbstractManager.MyResourceIds resources, String member, @Nullable String
-            addPermissions, @Nullable String removePermissions, @Nullable String setPermissions) throws CatalogException {
+    public List<QueryResult<FileAclEntry>> updateFileAcl(AbstractManager.MyResourceIds resources, String member,
+                                                         @Nullable String addPermissions, @Nullable String removePermissions,
+                                                         @Nullable String setPermissions) throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         // Check the member is valid
         checkMembers(dbAdaptorFactory, resources.getStudyId(), Arrays.asList(member));
 
@@ -1862,6 +1869,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<IndividualAclEntry> updateIndividualAcl(String userId, long individualId, String member,
                                                                @Nullable String addPermissions, @Nullable String removePermissions,
                                                                @Nullable String setPermissions) throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         individualDBAdaptor.checkId(individualId);
         checkIndividualPermission(individualId, userId, IndividualAclEntry.IndividualPermissions.SHARE);
 
@@ -2063,6 +2072,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<CohortAclEntry> updateCohortAcl(String userId, long cohortId, String member, @Nullable String addPermissions,
                                                        @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         cohortDBAdaptor.checkId(cohortId);
         checkCohortPermission(cohortId, userId, CohortAclEntry.CohortPermissions.SHARE);
 
@@ -2105,6 +2116,20 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
         }
 
         return cohortDBAdaptor.getAcl(cohortId, Arrays.asList(member));
+    }
+
+    private void checkUpdateParams(@Nullable String addPermissions, @Nullable String removePermissions, @Nullable String setPermissions)
+            throws CatalogException {
+        int cont = 0;
+        cont += addPermissions != null ? 1 : 0;
+        cont += removePermissions != null ? 1 : 0;
+        cont += setPermissions != null ? 1 : 0;
+
+        if (cont == 0) {
+            throw new CatalogException("No permissions to be added, removed or set");
+        } else if (cont > 1) {
+            throw new CatalogException("More than one action to be performed found. Please, select just one.");
+        }
     }
 
     @Override
@@ -2231,6 +2256,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<DatasetAclEntry> updateDatasetAcl(String userId, long datasetId, String member, @Nullable String addPermissions,
                                                          @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         datasetDBAdaptor.checkId(datasetId);
         checkDatasetPermission(datasetId, userId, DatasetAclEntry.DatasetPermissions.SHARE);
 
@@ -2398,6 +2425,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<JobAclEntry> updateJobAcl(String userId, long jobId, String member, @Nullable String addPermissions,
                                                  @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         jobDBAdaptor.checkId(jobId);
         checkJobPermission(jobId, userId, JobAclEntry.JobPermissions.SHARE);
 
@@ -2568,6 +2597,8 @@ public class CatalogAuthorizationManager implements AuthorizationManager {
     public QueryResult<DiseasePanelAclEntry> updatePanelAcl(String userId, long panelId, String member, @Nullable String addPermissions,
                                                             @Nullable String removePermissions, @Nullable String setPermissions)
             throws CatalogException {
+        checkUpdateParams(addPermissions, removePermissions, setPermissions);
+
         panelDBAdaptor.checkId(panelId);
         checkDiseasePanelPermission(panelId, userId, DiseasePanelAclEntry.DiseasePanelPermissions.SHARE);
 
