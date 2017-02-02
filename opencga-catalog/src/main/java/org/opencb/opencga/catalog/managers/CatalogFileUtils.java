@@ -729,6 +729,7 @@ public class CatalogFileUtils {
         logger.info("Unable to copy directly from {} to {} . Doing manual copy.", source.getScheme(), target.getScheme());
         DataInputStream fileObject = sourceIOManager.getFileObject(source, -1, -1);
         targetIOManager.createFile(target, fileObject);
+        fileObject.close();
 
         //throw new CatalogIOManagerException("Unable to copy from " + source.getScheme() + " to " + target.getScheme());
     }

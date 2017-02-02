@@ -125,46 +125,47 @@ public class BioformatDetector {
                 return File.Bioformat.NONE;
             }
 
-            FileInputStream fstream = new FileInputStream(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            try (FileInputStream fstream = new FileInputStream(path)) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
-            String strLine;
-            int numberOfLines = 20;
+                String strLine;
+                int numberOfLines = 20;
 
-            int i = 0;
-            boolean names = false;
-            while ((strLine = br.readLine()) != null) {
-                if (strLine.equalsIgnoreCase("")) {
-                    continue;
-                }
-                if (i == numberOfLines) {
-                    break;
-                }
-                if (strLine.startsWith("#")) {
-                    if (strLine.startsWith("#NAMES")) {
-                        names = true;
-                    } else {
+                int i = 0;
+                boolean names = false;
+                while ((strLine = br.readLine()) != null) {
+                    if (strLine.equalsIgnoreCase("")) {
                         continue;
                     }
-                } else {
-                    String[] fields = strLine.split("\t");
-                    if (fields.length > 2) {
-                        if (names && NumberUtils.isNumber(fields[1])) {
-                            return File.Bioformat.DATAMATRIX_EXPRESSION;
+                    if (i == numberOfLines) {
+                        break;
+                    }
+                    if (strLine.startsWith("#")) {
+                        if (strLine.startsWith("#NAMES")) {
+                            names = true;
+                        } else {
+                            continue;
                         }
-                    } else if (fields.length == 1) {
-                        if (fields[0].split(" ").length == 1 && !NumberUtils.isNumber(fields[0])) {
-                            return File.Bioformat.IDLIST;
-                        }
-                    } else if (fields.length == 2) {
-                        if (!fields[0].contains(" ") && NumberUtils.isNumber(fields[1])) {
-                            return File.Bioformat.IDLIST_RANKED;
+                    } else {
+                        String[] fields = strLine.split("\t");
+                        if (fields.length > 2) {
+                            if (names && NumberUtils.isNumber(fields[1])) {
+                                return File.Bioformat.DATAMATRIX_EXPRESSION;
+                            }
+                        } else if (fields.length == 1) {
+                            if (fields[0].split(" ").length == 1 && !NumberUtils.isNumber(fields[0])) {
+                                return File.Bioformat.IDLIST;
+                            }
+                        } else if (fields.length == 2) {
+                            if (!fields[0].contains(" ") && NumberUtils.isNumber(fields[1])) {
+                                return File.Bioformat.IDLIST_RANKED;
+                            }
                         }
                     }
+                    i++;
                 }
-                i++;
+                br.close();
             }
-            br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

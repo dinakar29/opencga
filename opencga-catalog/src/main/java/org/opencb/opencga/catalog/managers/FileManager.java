@@ -1010,19 +1010,15 @@ public class FileManager extends AbstractManager implements IFileManager {
         }
 
 
-        QueryResult<File> queryResult = null;
+        QueryResult<File> queryResult = new QueryResult<>("Search file");
         for (Long studyId : studyIds) {
             query.append(FileDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
             QueryResult<File> queryResultAux = fileDBAdaptor.get(query, options);
             authorizationManager.filterFiles(userId, studyId, queryResultAux.getResult());
 
-            if (queryResult == null) {
-                queryResult = queryResultAux;
-            } else {
-                queryResult.getResult().addAll(queryResultAux.getResult());
-                queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
-                queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
-            }
+            queryResult.getResult().addAll(queryResultAux.getResult());
+            queryResult.setNumTotalResults(queryResult.getNumTotalResults() + queryResultAux.getNumTotalResults());
+            queryResult.setDbTime(queryResult.getDbTime() + queryResultAux.getDbTime());
         }
         queryResult.setNumResults(queryResult.getResult().size());
 
@@ -2144,12 +2140,12 @@ public class FileManager extends AbstractManager implements IFileManager {
         query.put(FileDBAdaptor.QueryParams.STUDY_ID.key(), studyId);
 
         // TODO: In next release, we will have to check the count parameter from the queryOptions object.
-        boolean count = true;
-        QueryResult queryResult = null;
-        if (count) {
+//        boolean count = true;
+        QueryResult queryResult;
+//        if (count) {
             // We do not need to check for permissions when we show the count of files
-            queryResult = fileDBAdaptor.groupBy(query, fields, options);
-        }
+        queryResult = fileDBAdaptor.groupBy(query, fields, options);
+//        }
 
         return ParamUtils.defaultObject(queryResult, QueryResult::new);
     }

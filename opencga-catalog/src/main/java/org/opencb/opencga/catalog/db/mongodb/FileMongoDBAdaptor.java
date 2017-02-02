@@ -145,7 +145,7 @@ public class FileMongoDBAdaptor extends MongoDBAdaptor implements FileDBAdaptor 
 
         QueryResult<File> fileQueryResult;
         // TODO: Add the lookup for experiments
-        if (qOptions.get("lazy") != null && !qOptions.getBoolean("lazy")) {
+        if (!qOptions.getBoolean("lazy", true)) {
             Bson match = Aggregates.match(bson);
             Bson lookup = Aggregates.lookup("job", QueryParams.JOB_ID.key(), JobDBAdaptor.QueryParams.ID.key(), "job");
             fileQueryResult = fileCollection.aggregate(Arrays.asList(match, lookup), fileConverter, qOptions);
