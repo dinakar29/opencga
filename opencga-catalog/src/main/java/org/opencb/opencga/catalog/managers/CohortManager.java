@@ -100,7 +100,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
 
     @Override
     public Long getId(String userId, String cohortStr) throws CatalogException {
-        if (StringUtils.isNumeric(cohortStr)) {
+        if (StringUtils.isNumeric(cohortStr) && Long.parseLong(cohortStr) > configuration.getCatalog().getOffset()) {
             return Long.parseLong(cohortStr);
         }
 
@@ -108,7 +108,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
         ObjectMap parsedSampleStr = parseFeatureId(userId, cohortStr);
         List<Long> studyIds = getStudyIds(parsedSampleStr);
         String cohortName = parsedSampleStr.getString("featureName");
-        if (StringUtils.isNumeric(cohortName)) {
+        if (StringUtils.isNumeric(cohortName) && Long.parseLong(cohortStr) > configuration.getCatalog().getOffset()) {
             return Long.parseLong(cohortName);
         }
 
@@ -167,7 +167,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
         long studyId;
         long cohortId;
 
-        if (StringUtils.isNumeric(cohortStr)) {
+        if (StringUtils.isNumeric(cohortStr) && Long.parseLong(cohortStr) > configuration.getCatalog().getOffset()) {
             cohortId = Long.parseLong(cohortStr);
             cohortDBAdaptor.exists(cohortId);
             studyId = cohortDBAdaptor.getStudyId(cohortId);
@@ -209,7 +209,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
         long studyId;
         List<Long> cohortIds;
 
-        if (StringUtils.isNumeric(cohortStr)) {
+        if (StringUtils.isNumeric(cohortStr) && Long.parseLong(cohortStr) > configuration.getCatalog().getOffset()) {
             cohortIds = Arrays.asList(Long.parseLong(cohortStr));
             cohortDBAdaptor.exists(cohortIds.get(0));
             studyId = cohortDBAdaptor.getStudyId(cohortIds.get(0));
@@ -225,10 +225,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
             QueryOptions queryOptions = new QueryOptions(QueryOptions.INCLUDE, CohortDBAdaptor.QueryParams.ID.key());
             QueryResult<Cohort> cohortQueryResult = cohortDBAdaptor.get(query, queryOptions);
             if (cohortQueryResult.getNumResults() == cohortSplit.size()) {
-                cohortIds = cohortQueryResult.getResult()
-                        .stream()
-                        .map(cohort -> cohort.getId())
-                        .collect(Collectors.toList());
+                cohortIds = cohortQueryResult.getResult().stream().map(Cohort::getId).collect(Collectors.toList());
             } else {
                 throw new CatalogException("Found only " + cohortQueryResult.getNumResults() + " out of the " + cohortSplit.size()
                         + " cohorts looked for in study " + studyStr);
@@ -282,19 +279,23 @@ public class CohortManager extends AbstractManager implements ICohortManager {
 
         for (Map.Entry<String, Object> param : parameters.entrySet()) {
             CohortDBAdaptor.QueryParams queryParam = CohortDBAdaptor.QueryParams.getParam(param.getKey());
+            if (queryParam == null) {
+                throw new CatalogException("Cannot update " + param.getKey());
+            }
             switch (queryParam) {
                 case NAME:
                 case CREATION_DATE:
                 case DESCRIPTION:
                 case SAMPLES:
+                case ATTRIBUTES:
                     break;
                 default:
                     throw new CatalogException("Cannot update " + queryParam);
             }
         }
 
-        Cohort cohort = get(cohortId, new QueryOptions(QueryOptions.INCLUDE, "projects.studies.cohorts."
-                + CohortDBAdaptor.QueryParams.STATUS_NAME.key()), sessionId).first();
+        Cohort cohort = get(cohortId, new QueryOptions(QueryOptions.INCLUDE, CohortDBAdaptor.QueryParams.STATUS_NAME.key()), sessionId)
+                .first();
         if (parameters.containsKey(CohortDBAdaptor.QueryParams.SAMPLES.key())
                 || parameters.containsKey(CohortDBAdaptor.QueryParams.NAME.key())/* || params.containsKey("type")*/) {
             switch (cohort.getStatus().getName()) {
@@ -529,7 +530,7 @@ public class CohortManager extends AbstractManager implements ICohortManager {
     private long commonGetAnnotationSet(String id, @Nullable String studyStr, String annotationSetName, String sessionId)
             throws CatalogException {
         ParamUtils.checkParameter(id, "id");
-        ParamUtils.checkAlias(annotationSetName, "annotationSetName");
+        ParamUtils.checkAlias(annotationSetName, "annotationSetName", configuration.getCatalog().getOffset());
         MyResourceId resource = getId(id, studyStr, sessionId);
         authorizationManager.checkCohortPermission(resource.getResourceId(), resource.getUser(),
                 CohortAclEntry.CohortPermissions.VIEW_ANNOTATIONS);

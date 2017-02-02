@@ -18,6 +18,7 @@ package org.opencb.opencga.catalog.db.mongodb;
 
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -202,6 +203,21 @@ public class DatasetMongoDBAdaptor extends MongoDBAdaptor implements DatasetDBAd
         }
 
         return endQuery("Update cohort", startTime, new QueryResult<>());
+    }
+
+    @Override
+    public void delete(long id) throws CatalogDBException {
+        Query query = new Query(QueryParams.ID.key(), id);
+        delete(query);
+    }
+
+    @Override
+    public void delete(Query query) throws CatalogDBException {
+        QueryResult<DeleteResult> remove = datasetCollection.remove(parseQuery(query, false), null);
+
+        if (remove.first().getDeletedCount() == 0) {
+            throw CatalogDBException.deleteError("Dataset");
+        }
     }
 
     @Override
@@ -591,7 +607,7 @@ public class DatasetMongoDBAdaptor extends MongoDBAdaptor implements DatasetDBAd
     @Override
     public void removeAclsFromMember(Query query, List<String> members, @Nullable List<String> permissions) throws CatalogDBException {
         QueryResult<Dataset> datasetQueryResult = get(query, new QueryOptions(QueryOptions.INCLUDE, QueryParams.ID.key()));
-        List<Long> datasetIds = datasetQueryResult.getResult().stream().map(dataset -> dataset.getId()).collect(Collectors.toList());
+        List<Long> datasetIds = datasetQueryResult.getResult().stream().map(Dataset::getId).collect(Collectors.toList());
 
         if (datasetIds == null || datasetIds.size() == 0) {
             throw new CatalogDBException("No matches found for query when attempting to remove permissions");

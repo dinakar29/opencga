@@ -37,6 +37,7 @@ import org.opencb.opencga.catalog.models.acls.AbstractAcl;
 import org.opencb.opencga.catalog.models.acls.permissions.AbstractAclEntry;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -263,7 +264,8 @@ public class AclMongoDBAdaptor<T extends AbstractAclEntry> implements AclDBAdapt
 
             // Try to update and add the new permissions (if the member already had those permissions set)
             Document queryDocument = new Document()
-                    .append(PRIVATE_ID, resourceIds)
+                    .append("$isolated", 1)
+                    .append(PRIVATE_ID, new Document("$in", resourceIds))
                     .append(QueryParams.ACL_MEMBER.key(), member);
 
             Document update = new Document("$addToSet", new Document("acl.$.permissions", new Document("$each", permissions)));
@@ -296,6 +298,7 @@ public class AclMongoDBAdaptor<T extends AbstractAclEntry> implements AclDBAdapt
     @Override
     public T removeAclsFromMember(long resourceId, String member, List<String> permissions) throws CatalogDBException {
         Document query = new Document()
+                .append("$isolated", 1)
                 .append(PRIVATE_ID, resourceId)
                 .append(QueryParams.ACL_MEMBER.key(), member);
         Bson pull = Updates.pullAll("acl.$.permissions", permissions);
@@ -309,21 +312,39 @@ public class AclMongoDBAdaptor<T extends AbstractAclEntry> implements AclDBAdapt
     }
 
     @Override
-    public void removeAclsFromMembers(List<Long> resourceIds, List<String> members, List<String> permissions) throws CatalogDBException {
-        for (String member : members) {
+    public void removeAclsFromMembers(List<Long> resourceIds, List<String> members, @Nullable List<String> permissions)
+            throws CatalogDBException {
+        if (permissions == null || permissions.size() == 0) {
+            // Remove the members from the acl table
             Document queryDocument = new Document()
-                    .append(PRIVATE_ID, resourceIds)
-                    .append(QueryParams.ACL_MEMBER.key(), member);
+                    .append("$isolated", 1)
+                    .append(PRIVATE_ID, new Document("$in", resourceIds));
 
-            Bson update = Updates.pullAll("acl.$.permissions", permissions);
-            logger.debug("Remove Acl: Query {}, Pull {}",
-                    queryDocument.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()),
-                    update.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()));
+            Document update = new Document("$pull", new Document(QueryParams.ACL.key(),
+                    new Document(QueryParams.MEMBER.key(), new Document("$in", members))));
 
-            QueryResult<UpdateResult> pullUpdate = collection.update(queryDocument, update, new QueryOptions("multi", true));
+            QueryResult<UpdateResult> updateResult = collection.update(queryDocument, update, new QueryOptions("multi", true));
 
-            logger.debug("Remove Acl: {} out of {} acls removed from {}", pullUpdate.first().getModifiedCount(),
-                    pullUpdate.first().getMatchedCount(), members);
+            logger.debug("Remove Acl: {} out of {} removed for members {}", updateResult.first().getModifiedCount(),
+                    updateResult.first().getMatchedCount(), members);
+        } else {
+            // Remove the selected permissions from the array of permissions of each member
+            for (String member : members) {
+                Document queryDocument = new Document()
+                        .append("$isolated", 1)
+                        .append(PRIVATE_ID, new Document("$in", resourceIds))
+                        .append(QueryParams.ACL_MEMBER.key(), member);
+
+                Bson update = Updates.pullAll("acl.$.permissions", permissions);
+                logger.debug("Remove Acl: Query {}, Pull {}",
+                        queryDocument.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()),
+                        update.toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry()));
+
+                QueryResult<UpdateResult> pullUpdate = collection.update(queryDocument, update, new QueryOptions("multi", true));
+
+                logger.debug("Remove Acl: {} out of {} acls removed from {}", pullUpdate.first().getModifiedCount(),
+                        pullUpdate.first().getMatchedCount(), members);
+            }
         }
     }
 

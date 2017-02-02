@@ -749,20 +749,22 @@ public class CatalogManagerTest extends GenericTest {
         VariableSet vs4 = catalogManager.createVariableSet(studyId, "vs4", true, "Aries", null, variables, sessionIdUser).first();
 
         long numResults;
-        numResults = catalogManager.getAllVariableSet(studyId, new QueryOptions(StudyDBAdaptor.VariableSetParams.NAME.key()
-                , "vs1"), sessionIdUser).getNumResults();
+        numResults = catalogManager.getStudyManager().searchVariableSets(Long.toString(studyId),
+                new Query(StudyDBAdaptor.VariableSetParams.NAME.key(), "vs1"), QueryOptions.empty(), sessionIdUser).getNumResults();
         assertEquals(1, numResults);
 
-        numResults = catalogManager.getAllVariableSet(studyId, new QueryOptions(StudyDBAdaptor.VariableSetParams.NAME.key()
-                , "vs1,vs2"), sessionIdUser).getNumResults();
+        numResults = catalogManager.getStudyManager().searchVariableSets(Long.toString(studyId),
+                new Query(StudyDBAdaptor.VariableSetParams.NAME.key(), "vs1,vs2"), QueryOptions.empty(), sessionIdUser)
+                .getNumResults();
         assertEquals(2, numResults);
 
-        numResults = catalogManager.getAllVariableSet(studyId, new QueryOptions(StudyDBAdaptor.VariableSetParams.NAME.key()
-                , "VS1"), sessionIdUser).getNumResults();
+        numResults = catalogManager.getStudyManager().searchVariableSets(Long.toString(studyId),
+                new Query(StudyDBAdaptor.VariableSetParams.NAME.key(), "VS1"), QueryOptions.empty(), sessionIdUser).getNumResults();
         assertEquals(0, numResults);
 
-        numResults = catalogManager.getAllVariableSet(studyId, new QueryOptions(StudyDBAdaptor.VariableSetParams.ID.key()
-                , vs1.getId() + "," + vs3.getId()), sessionIdUser).getNumResults();
+        numResults = catalogManager.getStudyManager().searchVariableSets(Long.toString(studyId),
+                new Query(StudyDBAdaptor.VariableSetParams.ID.key(), vs1.getId() + "," + vs3.getId()), QueryOptions.empty(),
+                sessionIdUser).getNumResults();
         assertEquals(2, numResults);
 
     }
@@ -1320,14 +1322,12 @@ public class CatalogManagerTest extends GenericTest {
         long sampleId1 = catalogManager.getSampleManager().create("user@1000G:phase1", "SAMPLE_1", "", "", null, new QueryOptions(),
                 sessionIdUser).first().getId();
 
-        // It will not modify anything as the individualId is already -1
-        thrown.expect(CatalogDBException.class);
         catalogManager.getSampleManager()
                 .update(sampleId1, new ObjectMap(SampleDBAdaptor.QueryParams.INDIVIDUAL_ID.key(), -1), null, sessionIdUser);
 
         Sample sample = catalogManager.getSampleManager()
                 .update(sampleId1, new ObjectMap(SampleDBAdaptor.QueryParams.INDIVIDUAL_ID.key(), -2), null, sessionIdUser).first();
-        assertEquals(-2, sample.getIndividual().getId());
+        assertEquals(-1, sample.getIndividual().getId());
     }
 
     @Test

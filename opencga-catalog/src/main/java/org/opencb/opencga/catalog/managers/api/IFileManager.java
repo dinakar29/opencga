@@ -155,12 +155,12 @@ public interface IFileManager extends ResourceManager<Long, File> {
     /*--------------*/
     /* CRUD METHODS */
     /*--------------*/
-    QueryResult<File> create(long studyId, File.Type type, File.Format format, File.Bioformat bioformat, String path, String creationDate,
-                             String description, File.FileStatus status, long size, long experimentId, List<Long> sampleIds,
-                             long jobId, Map<String, Object> stats, Map<String, Object> attributes, boolean parents, QueryOptions options,
-                             String sessionId) throws CatalogException;
+    QueryResult<File> create(String studyStr, File.Type type, File.Format format, File.Bioformat bioformat, String path,
+                             String creationDate, String description, File.FileStatus status, long size, long experimentId,
+                             List<Long> sampleIds, long jobId, Map<String, Object> stats, Map<String, Object> attributes,
+                             boolean parents, String content, QueryOptions options, String sessionId) throws CatalogException;
 
-    QueryResult<File> createFolder(long studyId, String path, File.FileStatus status, boolean parents, String description,
+    QueryResult<File> createFolder(String studyStr, String path, File.FileStatus status, boolean parents, String description,
                                    QueryOptions options, String sessionId) throws CatalogException;
 
     QueryResult<File> get(long studyId, Query query, QueryOptions options, String sessionId) throws CatalogException;
@@ -204,9 +204,6 @@ public interface IFileManager extends ResourceManager<Long, File> {
 
     QueryResult<FileTree> getTree(String fileIdStr, @Nullable String studyId, Query query, QueryOptions queryOptions, int maxDepth,
                                   String sessionId) throws CatalogException;
-
-    @Deprecated
-    QueryResult<File> unlink(long fileId, String sessionId) throws CatalogException;
 
     QueryResult<File> unlink(String fileIdStr, @Nullable String studyStr, String sessionId) throws CatalogException, IOException;
 

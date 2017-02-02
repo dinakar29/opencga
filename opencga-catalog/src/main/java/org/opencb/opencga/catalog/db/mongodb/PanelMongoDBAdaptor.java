@@ -19,6 +19,7 @@ package org.opencb.opencga.catalog.db.mongodb;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -231,6 +232,21 @@ public class PanelMongoDBAdaptor extends MongoDBAdaptor implements PanelDBAdapto
     }
 
     @Override
+    public void delete(long id) throws CatalogDBException {
+        Query query = new Query(QueryParams.ID.key(), id);
+        delete(query);
+    }
+
+    @Override
+    public void delete(Query query) throws CatalogDBException {
+        QueryResult<DeleteResult> remove = panelCollection.remove(parseQuery(query, false), null);
+
+        if (remove.first().getDeletedCount() == 0) {
+            throw CatalogDBException.deleteError("Disease panel");
+        }
+    }
+
+    @Override
     public QueryResult<DiseasePanel> delete(long id, QueryOptions queryOptions) throws CatalogDBException {
         throw new UnsupportedOperationException("Delete not yet implemented.");
     }
@@ -409,7 +425,7 @@ public class PanelMongoDBAdaptor extends MongoDBAdaptor implements PanelDBAdapto
     @Override
     public void removeAclsFromMember(Query query, List<String> members, @Nullable List<String> permissions) throws CatalogDBException {
         QueryResult<DiseasePanel> panelQueryResult = get(query, new QueryOptions(QueryOptions.INCLUDE, QueryParams.ID.key()));
-        List<Long> panelIds = panelQueryResult.getResult().stream().map(panel -> panel.getId()).collect(Collectors.toList());
+        List<Long> panelIds = panelQueryResult.getResult().stream().map(DiseasePanel::getId).collect(Collectors.toList());
 
         if (panelIds == null || panelIds.size() == 0) {
             throw new CatalogDBException("No matches found for query when attempting to remove permissions");
