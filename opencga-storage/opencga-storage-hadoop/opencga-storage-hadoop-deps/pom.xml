@@ -71,7 +71,7 @@
         <curator.version>2.7.1</curator.version>
         <apacheds-kerberos-codec.version>2.0.0-M15</apacheds-kerberos-codec.version>
         <leveldbjni-all.version>1.8</leveldbjni-all.version>
-        <zookeeper.version>3.4.6</zookeeper.version>
+        <zookeeper.version>3.4.10</zookeeper.version>
 
         <!--Read from main hbase pom.xml-->
         <metrics-core.version>2.2.0</metrics-core.version>
@@ -592,6 +592,7 @@
                                     <includes>
                                         <include>com/google/common/io/Closeables*</include>
                                         <include>com/google/common/base/Stopwatch*</include>
+                                        <include>com/google/common/hash/*</include>
                                     </includes>
                                 </filter>
                             </filters>
@@ -617,6 +618,7 @@
                                     <includes>
                                         <include>com.google.common.io.Closeables</include>
                                         <include>com.google.common.base.Stopwatch</include>
+                                        <include>com.google.common.hash.*</include>
                                     </includes>
                                     <!--<excludes>-->
                                     <!--<exclude>com.google.common.base.**</exclude>-->

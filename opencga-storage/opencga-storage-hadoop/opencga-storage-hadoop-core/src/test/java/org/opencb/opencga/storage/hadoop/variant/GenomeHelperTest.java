@@ -119,7 +119,7 @@ public class GenomeHelperTest {
                     new PColumnImpl(PNameFactory.newName("REFERENCE"), null, PVarchar.INSTANCE, null, null, true, 2, SortOrder.ASC, null, null, false, null, false, false),
                     new PColumnImpl(PNameFactory.newName("ALTERNATE"), null, PVarchar.INSTANCE, null, null, true, 3, SortOrder.ASC, null, null, false, null, false, false)
             );
-            table = PTableImpl.makePTable(new PTableImpl(PNameFactory.newName("user"), null, "rk", 0, Collections.emptyList(), false), columns);
+            table = PTableImpl.makePTable(new PTableImpl(PNameFactory.newName("user"), null, "rk", 0, Collections.emptyList()), columns);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

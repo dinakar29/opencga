@@ -17,8 +17,7 @@
 package org.opencb.opencga.storage.hadoop.variant.index.annotation;
 
 import com.google.common.base.Function;
-import org.apache.phoenix.schema.types.PDataType;
-import org.apache.phoenix.schema.types.PhoenixArray;
+import org.apache.phoenix.schema.types.*;
 import org.apache.phoenix.util.UpsertExecutor;
 import org.opencb.opencga.storage.hadoop.variant.index.phoenix.PhoenixHelper.Column;
 import org.opencb.opencga.storage.hadoop.variant.index.phoenix.VariantPhoenixHelper;
@@ -117,7 +116,15 @@ public class VariantAnnotationUpsertExecutor extends UpsertExecutor<Map<Column, 
         if (elementDataType.isArrayType()) {
             elementDataType = PDataType.arrayBaseType(elementDataType);
         }
-        return new PhoenixArray(elementDataType, input.toArray(new Object[input.size()]));
+        if (elementDataType instanceof PInteger) {
+            return new PhoenixArray.PrimitiveIntPhoenixArray(elementDataType, input.toArray(new Object[input.size()]));
+        } else if (elementDataType instanceof PFloat) {
+            return new PhoenixArray.PrimitiveFloatPhoenixArray(elementDataType, input.toArray(new Object[input.size()]));
+        } else if (elementDataType instanceof PDouble) {
+            return new PhoenixArray.PrimitiveDoublePhoenixArray(elementDataType, input.toArray(new Object[input.size()]));
+        } else {
+            return new PhoenixArray(elementDataType, input.toArray(new Object[input.size()]));
+        }
     }
 
 
