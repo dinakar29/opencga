@@ -71,7 +71,7 @@
         <curator.version>2.7.1</curator.version>
         <apacheds-kerberos-codec.version>2.0.0-M15</apacheds-kerberos-codec.version>
         <leveldbjni-all.version>1.8</leveldbjni-all.version>
-        <zookeeper.version>3.4.6</zookeeper.version>
+        <zookeeper.version>3.4.10</zookeeper.version>
 
         <!--Read from main hbase pom.xml-->
         <metrics-core.version>2.2.0</metrics-core.version>
@@ -88,11 +88,11 @@
         <commons-logging.version>1.2</commons-logging.version>
         <commons-csv.version>1.0</commons-csv.version>
         <commons-codec.version>1.7</commons-codec.version>
-        <collections.version>3.2.1</collections.version>
-        <sqlline.version>1.1.9</sqlline.version>
+        <collections.version>3.2.2</collections.version>
+        <sqlline.version>1.2.0</sqlline.version>
         <jline.version>2.11</jline.version>
-        <antlr.version>3.5</antlr.version>
-        <tephra.version>0.7.0</tephra.version>
+        <antlr.version>3.5.2</antlr.version>
+        <tephra.version>0.12.0-incubating</tephra.version>
         <snappy.version>0.3</snappy.version>
 
     </properties>
@@ -472,12 +472,12 @@
             <version>${sqlline.version}</version>
         </dependency>
         <dependency>
-            <groupId>co.cask.tephra</groupId>
+            <groupId>org.apache.tephra</groupId>
             <artifactId>tephra-api</artifactId>
             <version>${tephra.version}</version>
         </dependency>
         <dependency>
-            <groupId>co.cask.tephra</groupId>
+            <groupId>org.apache.tephra</groupId>
             <artifactId>tephra-core</artifactId>
             <version>${tephra.version}</version>
             <exclusions>
@@ -492,7 +492,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>co.cask.tephra</groupId>
+            <groupId>org.apache.tephra</groupId>
             <artifactId>tephra-hbase-compat-1.1</artifactId>
             <version>${tephra.version}</version>
         </dependency>

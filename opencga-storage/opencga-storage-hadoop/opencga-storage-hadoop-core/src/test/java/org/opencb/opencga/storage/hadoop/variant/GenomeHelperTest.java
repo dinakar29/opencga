@@ -114,10 +114,10 @@ public class GenomeHelperTest {
         PTableImpl table;
         try {
             List<PColumn> columns = Arrays.asList(
-                    new PColumnImpl(PNameFactory.newName("CHROMOSOME"), null, PVarchar.INSTANCE, null, null, false, 0, SortOrder.ASC, null, null, false, null, false, false),
-                    new PColumnImpl(PNameFactory.newName("POSITION"), null, PUnsignedInt.INSTANCE, null, null, false, 1, SortOrder.ASC, null, null, false, null, false, false),
-                    new PColumnImpl(PNameFactory.newName("REFERENCE"), null, PVarchar.INSTANCE, null, null, true, 2, SortOrder.ASC, null, null, false, null, false, false),
-                    new PColumnImpl(PNameFactory.newName("ALTERNATE"), null, PVarchar.INSTANCE, null, null, true, 3, SortOrder.ASC, null, null, false, null, false, false)
+                    new PColumnImpl(PNameFactory.newName("CHROMOSOME"), null, PVarchar.INSTANCE, null, null, false, 0, SortOrder.ASC, null, null, false, null, false, false, null),
+                    new PColumnImpl(PNameFactory.newName("POSITION"), null, PUnsignedInt.INSTANCE, null, null, false, 1, SortOrder.ASC, null, null, false, null, false, false, null),
+                    new PColumnImpl(PNameFactory.newName("REFERENCE"), null, PVarchar.INSTANCE, null, null, true, 2, SortOrder.ASC, null, null, false, null, false, false, null),
+                    new PColumnImpl(PNameFactory.newName("ALTERNATE"), null, PVarchar.INSTANCE, null, null, true, 3, SortOrder.ASC, null, null, false, null, false, false, null)
             );
             table = PTableImpl.makePTable(new PTableImpl(PNameFactory.newName("user"), null, "rk", 0, Collections.emptyList(), false), columns);
         } catch (SQLException e) {
