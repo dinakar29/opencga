@@ -1488,7 +1488,8 @@ public class FileManager extends AbstractManager implements IFileManager {
                             // Look for the file in catalog
                             Query query = new Query()
                                     .append(FileDBAdaptor.QueryParams.STUDY_ID.key(), studyId)
-                                    .append(FileDBAdaptor.QueryParams.URI.key(), path.toUri().toString());
+                                    .append(FileDBAdaptor.QueryParams.URI.key(), path.toUri().toString())
+                                    .append(FileDBAdaptor.QueryParams.STATUS_NAME.key(), "!=" + Status.DELETED);
 
                             QueryResult<File> fileQueryResult = fileDBAdaptor.get(query, new QueryOptions());
 
@@ -1551,7 +1552,8 @@ public class FileManager extends AbstractManager implements IFileManager {
 //                                    }
                                     Query query = new Query()
                                             .append(FileDBAdaptor.QueryParams.STUDY_ID.key(), studyId)
-                                            .append(FileDBAdaptor.QueryParams.URI.key(), folderUri);
+                                            .append(FileDBAdaptor.QueryParams.URI.key(), folderUri)
+                                            .append(FileDBAdaptor.QueryParams.STATUS_NAME.key(), "!=" + Status.DELETED);
 
                                     QueryResult<File> fileQueryResult = fileDBAdaptor.get(query, QueryOptions.empty());
 
@@ -2047,6 +2049,13 @@ public class FileManager extends AbstractManager implements IFileManager {
         String basePath = Paths.get(file.getPath()).toString();
         String suffixedPath = basePath + suffixName;
         if (file.getType().equals(File.Type.FILE)) {
+            if (fileQueryResult.first().getStatus().getName().equals(File.FileStatus.REMOVED)) {
+                return fileQueryResult;
+            }
+            if (!fileQueryResult.first().getStatus().getName().equals(File.FileStatus.READY)) {
+                throw new CatalogException("Cannot unlink. Unexpected file status: " + fileQueryResult.first().getStatus().getName());
+            }
+
             logger.debug("Unlinking file {}", file.getUri().toString());
 
             ObjectMap update = new ObjectMap()
@@ -2086,6 +2095,10 @@ public class FileManager extends AbstractManager implements IFileManager {
                         }
 
                         File file = fileQueryResult.first();
+                        if (!file.getStatus().getName().equals(File.FileStatus.READY)) {
+                            logger.warn("Not unlinking file {}, file status: {}", file.getPath(), file.getStatus().getName());
+                            return FileVisitResult.CONTINUE;
+                        }
 
                         ObjectMap update = new ObjectMap()
                                 .append(FileDBAdaptor.QueryParams.STATUS_NAME.key(), File.FileStatus.REMOVED)
@@ -2151,6 +2164,10 @@ public class FileManager extends AbstractManager implements IFileManager {
                             }
 
                             File file = fileQueryResult.first();
+                            if (!file.getStatus().getName().equals(File.FileStatus.READY)) {
+                                logger.warn("Not unlinking folder {}, folder status: {}", file.getPath(), file.getStatus().getName());
+                                return FileVisitResult.CONTINUE;
+                            }
 
                             ObjectMap update = new ObjectMap()
                                     .append(FileDBAdaptor.QueryParams.STATUS_NAME.key(), File.FileStatus.REMOVED)
