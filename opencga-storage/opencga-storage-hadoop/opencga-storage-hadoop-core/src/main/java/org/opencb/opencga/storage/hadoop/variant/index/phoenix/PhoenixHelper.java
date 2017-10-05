@@ -186,7 +186,7 @@ public class PhoenixHelper {
 
     public Connection newJdbcConnection(Configuration conf) throws SQLException, ClassNotFoundException {
         // Ensure PhoenixDriver is registered
-        if (PhoenixDriver.INSTANCE != null) {
+        if (PhoenixDriver.INSTANCE == null) {
             throw new SQLException("Error registering PhoenixDriver");
         }
         logger.info("Opening connection to PhoenixDriver " + PhoenixDriver.INSTANCE);
