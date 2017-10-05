@@ -21,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.phoenix.jdbc.PhoenixDatabaseMetaData;
+import org.apache.phoenix.jdbc.PhoenixDriver;
 import org.apache.phoenix.schema.ConcurrentTableMutationException;
 import org.apache.phoenix.schema.PTable;
 import org.apache.phoenix.schema.PTableType;
@@ -35,10 +36,7 @@ import org.apache.phoenix.util.SchemaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -187,6 +185,11 @@ public class PhoenixHelper {
     }
 
     public Connection newJdbcConnection(Configuration conf) throws SQLException, ClassNotFoundException {
+        // Ensure PhoenixDriver is registered
+        if (PhoenixDriver.INSTANCE != null) {
+            throw new SQLException("Error registering PhoenixDriver");
+        }
+        logger.info("Opening connection to PhoenixDriver " + PhoenixDriver.INSTANCE);
         Connection connection = QueryUtil.getConnection(conf);
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         logger.info("Opened Phoenix DB connection {} called from {}", connection, Arrays.toString(stackTrace));
