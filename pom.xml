@@ -25,7 +25,7 @@
     <version>1.4.0-dev</version>
     <packaging>pom</packaging>
     <name>OpenCGA</name>
-    
+
     <modules>
         <module>opencga-core</module>
         <module>opencga-app</module>
